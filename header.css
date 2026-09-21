@@ -1,0 +1,166 @@
+/* ============================================================
+   E-BIYAHEro — SHARED HEADER STYLES
+   Used by index.html and registration.html
+   ============================================================ */
+
+:root {
+    --primary-yellow: #ffcc00;
+    --nav-blue: #101f3b;
+}
+
+/* ---------- HEADER ---------- */
+.main-header {
+    background-color: var(--nav-blue);
+    padding: 15px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+}
+
+.main-header .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+}
+
+.main-header .logo-img {
+    height: 42px;
+    width: auto;
+    border-radius: 6px;
+    object-fit: contain;
+    background-color: white;
+    padding: 2px 4px;
+}
+
+.main-header .logo-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.main-header .logo-text .title {
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    color: white;
+}
+
+.main-header .logo-text .subtitle {
+    font-size: 10px;
+    color: #a0aabf;
+    text-transform: uppercase;
+}
+
+.main-header .nav-links {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.main-header .nav-links li a {
+    color: white;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.3s;
+    text-decoration: none;
+}
+
+.main-header .nav-links li a:hover {
+    color: var(--primary-yellow);
+}
+
+/* ---------- NAV ACTION BUTTONS (uniform across pages) ---------- */
+.main-header .nav-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.main-header .btn {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    border: 1px solid transparent;
+    min-width: 110px;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+}
+
+.main-header .btn-login {
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+}
+
+/* Hover: yellow outline + subtle yellow glow (works on the inactive button) */
+.main-header .btn-login:hover {
+    border-color: var(--primary-yellow);
+    color: var(--primary-yellow);
+    background-color: rgba(255, 204, 0, 0.08);
+    box-shadow: 0 0 0 1px var(--primary-yellow);
+}
+
+.main-header .btn-register {
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+}
+
+/* Hover: yellow outline + subtle yellow glow (works on the inactive button) */
+.main-header .btn-register:hover {
+    border-color: var(--primary-yellow);
+    color: var(--primary-yellow);
+    background-color: rgba(255, 204, 0, 0.08);
+    box-shadow: 0 0 0 1px var(--primary-yellow);
+}
+
+/* Active yellow state — solid yellow fill */
+.main-header .btn-login.active,
+.main-header .btn-register.active {
+    background-color: var(--primary-yellow) !important;
+    color: var(--nav-blue) !important;
+    border-color: var(--primary-yellow) !important;
+    box-shadow: none;
+}
+
+/* On the active button, hover keeps the solid yellow state (no change) */
+.main-header .btn-login.active:hover,
+.main-header .btn-register.active:hover {
+    background-color: var(--primary-yellow) !important;
+    color: var(--nav-blue) !important;
+    border-color: var(--primary-yellow) !important;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 900px) {
+    .main-header .nav-links {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .main-header {
+        padding: 15px 20px;
+    }
+    .main-header .btn-register {
+        display: none;
+    }
+    .main-header .logo-img {
+        height: 34px;
+    }
+}

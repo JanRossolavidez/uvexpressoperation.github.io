@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Biyahero - Van Queue</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy-blue: #0f233f; --sidebar-blue: #142c4e; --yellow: #facc15; --yellow-hover: #eab308;
+            --bg-light: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
+        body { background-color: var(--bg-light); display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
+
+        .sidebar { width: 260px; background-color: var(--sidebar-blue); color: white; display: flex; flex-direction: column; position: relative; transition: all 0.3s; flex-shrink: 0; z-index: 20; }
+        .logo-container { padding: 20px; display: flex; align-items: center; gap: 10px; background-color: var(--navy-blue); }
+        
+        /* LOGO IMAGE */
+        .logo-img {
+            height: 38px;
+            width: auto;
+            border-radius: 6px;
+            object-fit: contain;
+            background-color: white;
+            padding: 2px 4px;
+            flex-shrink: 0;
+        }
+        .logo-icon { font-size: 28px; color: var(--yellow); }
+        .logo-text { min-width: 0; }
+        /* SMALLER TITLE SO IT FITS ON ONE LINE */
+        .logo-text h1 { font-size: 15px; font-weight: 800; line-height: 1.2; white-space: nowrap; }
+        .logo-text p { font-size: 9px; color: var(--yellow); font-weight: 600; white-space: nowrap; }
+        .nav-menu { padding: 20px 10px; flex-grow: 1; }
+        .nav-item { display: flex; align-items: center; gap: 15px; padding: 14px 20px; color: #cbd5e1; text-decoration: none; border-radius: 8px; margin-bottom: 8px; font-weight: 600; transition: all 0.2s; }
+        .nav-item:hover { background-color: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-item.active { background-color: var(--yellow); color: var(--navy-blue); font-weight: 700; }
+        .nav-item i { width: 20px; text-align: center; font-size: 18px; }
+        .sidebar-footer { padding: 20px; position: relative; margin-top: auto; }
+        .status-box { background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; z-index: 2; position: relative; }
+        .status-dot { width: 10px; height: 10px; background-color: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; flex-shrink: 0; }
+        .status-text { font-size: 12px; }
+        .status-text strong { display: block; font-size: 13px; white-space: nowrap; }
+        .status-text span { color: #94a3b8; font-size: 11px; }
+        .sidebar-illustration { position: absolute; bottom: 0; left: 0; width: 100%; height: 150px; background: linear-gradient(to top, var(--yellow) 0%, transparent 100%); opacity: 0.1; border-radius: 0 0 0 20px; z-index: 1; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 20px; pointer-events: none; }
+        .sidebar-illustration i { font-size: 80px; color: white; opacity: 0.2; }
+
+        /* --- LOGOUT BUTTON --- */
+        .logout-btn {
+            display: flex; align-items: center; gap: 15px; padding: 14px 20px;
+            background-color: rgba(239, 68, 68, 0.15); color: #fca5a5; text-decoration: none;
+            border-radius: 8px; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.3);
+            transition: all 0.2s; position: relative; z-index: 2; margin-bottom: 15px;
+        }
+        .logout-btn:hover { background-color: #ef4444; color: white; border-color: #ef4444; }
+        .logout-btn i { width: 20px; text-align: center; font-size: 18px; }
+
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .topbar { background-color: var(--card-bg); height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 10; }
+        .topbar-left { display: flex; align-items: center; gap: 20px; }
+        .menu-toggle { font-size: 20px; color: var(--text-main); cursor: pointer; display: none; }
+        .greeting h2 { font-size: 22px; font-weight: 800; color: var(--navy-blue); }
+        .greeting p { font-size: 14px; color: var(--text-muted); font-weight: 600; }
+        .topbar-right { display: flex; align-items: center; gap: 25px; }
+        .notification-icon { position: relative; font-size: 20px; color: var(--text-main); cursor: pointer; }
+        .notification-icon::after { content: ''; position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; border: 2px solid white; }
+        .user-profile { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .avatar { width: 40px; height: 40px; background-color: var(--yellow); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; color: var(--navy-blue); }
+        .user-info h4 { font-size: 14px; font-weight: 700; }
+        .user-info p { font-size: 12px; color: var(--text-muted); }
+
+        .dashboard-container { padding: 30px; display: grid; grid-template-columns: 2.5fr 1fr; gap: 25px; align-items: start; }
+        .left-column { display: flex; flex-direction: column; gap: 25px; }
+        .panel { background-color: var(--card-bg); border: 1px solid #fde68a; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .panel-title { font-size: 18px; font-weight: 800; color: var(--navy-blue); display: flex; align-items: center; gap: 10px; }
+        .view-all { color: #0284c7; font-size: 14px; font-weight: 700; text-decoration: none; }
+        .filters-bar { display: flex; gap: 12px; margin-bottom: 15px; }
+        .search-box { flex-grow: 1; display: flex; align-items: center; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 15px; gap: 10px; }
+        .search-box input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 600; }
+        .filter-btn { background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--navy-blue); }
+        
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { font-size: 13px; color: var(--text-muted); font-weight: 700; padding: 12px 10px; border-bottom: 1px solid var(--border-color); }
+        td { padding: 15px 10px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #f1f5f9; }
+        tr:last-child td { border-bottom: none; }
+        .plate-no { font-weight: 800; color: var(--navy-blue); }
+        .dl-no { font-size: 12px; color: var(--text-muted); }
+        .route-badge { padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; display: inline-block; margin-bottom: 4px; }
+        .route-cubao { background-color: #fef3c7; color: #d97706; }
+        .route-monumento { background-color: #dcfce7; color: #166534; }
+        .route-buendia { background-color: #dbeafe; color: #1d4ed8; }
+        .route-pasay { background-color: #f3e8ff; color: #7c3aed; }
+        .route-alabang { background-color: #fee2e2; color: #b91c1c; }
+        .route-fairview { background-color: #ccfbf1; color: #0f766e; }
+        
+        .btn-view { background-color: var(--yellow); color: var(--navy-blue); border: none; padding: 6px 15px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+        .btn-view:hover { background-color: var(--yellow-hover); }
+
+        .right-column { display: flex; flex-direction: column; gap: 25px; }
+        .summary-grid { display: flex; justify-content: space-between; text-align: center; padding: 10px 0; }
+        .summary-item h3 { font-size: 30px; font-weight: 800; color: var(--navy-blue); line-height: 1; }
+        .summary-item p { font-size: 12px; color: var(--text-muted); font-weight: 700; margin-top: 5px; }
+        .summary-item { flex: 1; border-right: 1px solid #f1f5f9; }
+        .summary-item:last-child { border-right: none; }
+        
+        .route-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .route-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; cursor: pointer; }
+        .route-item-left { display: flex; align-items: center; gap: 10px; }
+        .route-count { width: 28px; height: 28px; display: flex; justify-content: center; align-items: center; border-radius: 6px; font-size: 12px; font-weight: 800; }
+        .route-name { font-size: 14px; font-weight: 700; color: var(--navy-blue); }
+        .route-item i.fa-chevron-right { color: #cbd5e1; font-size: 12px; }
+
+        .quick-actions { display: flex; gap: 12px; }
+        .action-btn { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 15px 10px; border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; text-align: center; gap: 8px; transition: all 0.2s; background: white; }
+        .action-btn:hover { border-color: var(--yellow); background: #fffbeb; }
+        .action-btn i { color: var(--navy-blue); font-size: 20px; }
+        .action-btn span { font-size: 11px; font-weight: 700; color: var(--navy-blue); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        @media (max-width: 1200px) { .dashboard-container { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { 
+            .sidebar { width: 80px; } 
+            .logo-text, .nav-item span, .status-text, .sidebar-illustration { display: none; } 
+            .logo-container { justify-content: center; padding: 20px 0; } 
+            .nav-item { justify-content: center; padding: 15px 0; } 
+            .status-box { justify-content: center; padding: 10px; } 
+            .menu-toggle { display: block; } 
+            .logout-btn span { display: none; } 
+            .logout-btn { justify-content: center; padding: 15px 0; } 
+            .logo-img { height: 34px; }
+        }
+        @media (max-width: 600px) { .topbar { padding: 0 15px; } .dashboard-container { padding: 15px; } .user-info { display: none; } }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo-container">
+            <!-- LOGO IMAGE -->
+            <img src="logo.jpg" alt="E-Biyahero Logo" class="logo-img">
+            <div class="logo-text"><h1>E-Biyahero</h1><p>UV Express Terminal</p></div>
+        </div>
+        <nav class="nav-menu">
+            <a href="operatorDashboard.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+            <a href="vanQueue.html" class="nav-item active"><i class="fa-solid fa-van-shuttle"></i><span>Van Queue</span></a>
+            <a href="liveVanTracking.html" class="nav-item"><i class="fa-solid fa-location-dot"></i><span>Live Tracking</span></a>
+            <a href="operatorPassenger.html" class="nav-item"><i class="fa-solid fa-users"></i><span>Passengers</span></a>
+            <a href="operatorPayments.html" class="nav-item"><i class="fa-solid fa-credit-card"></i><span>Payments</span></a>
+            <a href="operatorReports.html" class="nav-item"><i class="fa-solid fa-chart-simple"></i><span>Reports</span></a>
+            <a href="operatorSettings.html" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="status-box"><div class="status-dot"></div><div class="status-text"><strong>Terminal Online</strong><span>Malolos UV Express Terminal</span></div></div>
+            <a href="index.html" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span>Log Out</span>
+            </a>
+            <div class="sidebar-illustration"><i class="fa-solid fa-van-shuttle"></i></div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <i class="fa-solid fa-bars menu-toggle"></i>
+                <div class="greeting"><h2>Van Queue</h2><p>Manage van registrations, driver information, and assigned routes</p></div>
+            </div>
+            <div class="topbar-right">
+                <div class="notification-icon"><i class="fa-regular fa-bell"></i></div>
+                <div class="user-profile">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="user-info"><h4>Juan Dela Cruz</h4><p>Operator</p></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-container">
+            <div class="left-column">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title"><i class="fa-solid fa-van-shuttle"></i> Driver Unit Directory</div>
+                        <a href="#" class="view-all">View All <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                    <div class="filters-bar">
+                        <div class="search-box"><i class="fa-solid fa-magnifying-glass" style="color:#94a3b8;"></i><input type="text" placeholder="Search by plate number, driver name, or route..."></div>
+                        <button class="filter-btn"><i class="fa-solid fa-filter" style="color:#94a3b8;"></i> All Routes <i class="fa-solid fa-chevron-down" style="font-size:10px; color:#94a3b8;"></i></button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Van Registration Details<br><span style="font-weight:500; color:#94a3b8;">Plate No. / Driver's License</span></th>
+                                    <th>Driver Personal & License Info<br><span style="font-weight:500; color:#94a3b8;">Name / License No.</span></th>
+                                    <th>Assigned Terminal/Route<br><span style="font-weight:500; color:#94a3b8;">Terminal / Route</span></th>
+                                    <th style="text-align:center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td><div class="plate-no">NAX 6821</div><div class="dl-no">DL No. 123456789012</div></td><td><div class="plate-no">R. Santos</div><div class="dl-no">DL No. 123456789012</div></td><td><span class="route-badge route-cubao">Cubao</span><div class="dl-no">Malolos - Cubao</div></td><td style="text-align:center;"><button class="btn-view">View</button></td></tr>
+                                <tr><td>2</td><td><div class="plate-no">NBI 3247</div><div class="dl-no">DL No. 234567890123</div></td><td><div class="plate-no">J. Reyes</div><div class="dl-no">DL No. 234567890123</div></td><td><span class="route-badge route-monumento">Monumento</span><div class="dl-no">Malolos - Monumento</div></td><td style="text-align:center;"><button class="btn-view">View</button></td></tr>
+                                <tr><td>3</td><td><div class="plate-no">DAH 5190</div><div class="dl-no">DL No. 345678901234</div></td><td><div class="plate-no">M. Cruz</div><div class="dl-no">DL No. 345678901234</div></td><td><span class="route-badge route-buendia">Buendia</span><div class="dl-no">Malolos - Buendia</div></td><td style="text-align:center;"><button class="btn-view">View</button></td></tr>
+                                <tr><td>4</td><td><div class="plate-no">NFJ 2183</div><div class="dl-no">DL No. 456789012345</div></td><td><div class="plate-no">E. Garcia</div><div class="dl-no">DL No. 456789012345</div></td><td><span class="route-badge route-pasay">Pasay</span><div class="dl-no">Malolos - Pasay</div></td><td style="text-align:center;"><button class="btn-view">View</button></td></tr>
+                                <tr><td>5</td><td><div class="plate-no">NAX 7364</div><div class="dl-no">DL No. 567890123456</div></td><td><div class="plate-no">D. Flores</div><div class="dl-no">DL No. 567890123456</div></td><td><span class="route-badge route-alabang">Alabang</span><div class="dl-no">Malolos - Alabang</div></td><td style="text-align:center;"><button class="btn-view">View</button></td></tr>
+                                <tr><td>6</td><td><div class="plate-no">TVO 4521</div><div class="dl-no">DL No. 678901234567</div></td><td><div class="plate-no">A. Santos</div><div class="dl-no">DL No. 678901234567</div></td><td><span class="route-badge route-fairview">SM Fairview</span><div class="dl-no">Malolos - SM Fairview</div></td><td style="text-align:center;"><button class="btn-view">View</button></td></tr>
+                                <tr><td>7</td><td><div class="plate-no">DAB 3107</div><div class="dl-no">DL No. 789012345678</div></td><td><div class="plate-no">L. Mendoza</div><div class="dl-no">DL No. 789012345678</div></td><td><span class="route-badge route-buendia">Buendia</span><div class="dl-no">Malolos - Buendia</div></td><td style="text-align:center;"><button class="btn-view">View</button></td></tr>
+                                <tr><td>8</td><td><div class="plate-no">NBI 2986</div><div class="dl-no">DL No. 890123456789</div></td><td><div class="plate-no">P. Reyes</div><div class="dl-no">DL No. 890123456789</div></td><td><span class="route-badge route-cubao">Cubao</span><div class="dl-no">Malolos - Cubao</div></td><td style="text-align:center;"><button class="btn-view">View</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="panel">
+                    <div class="panel-title" style="margin-bottom:15px;"><i class="fa-solid fa-van-shuttle"></i> Summary</div>
+                    <div class="summary-grid">
+                        <div class="summary-item"><h3>10</h3><p>Total Drivers</p></div>
+                        <div class="summary-item"><h3>8</h3><p>Active Units</p></div>
+                        <div class="summary-item"><h3>2</h3><p>On Leave</p></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title" style="margin-bottom:0;"><i class="fa-solid fa-location-dot" style="color:var(--yellow-hover);"></i> Route Summary</div>
+                    <div class="route-list">
+                        <div class="route-item"><div class="route-item-left"><div class="route-count route-cubao">3</div><span class="route-name">Cubao</span></div><i class="fa-solid fa-chevron-right"></i></div>
+                        <div class="route-item"><div class="route-item-left"><div class="route-count route-monumento">2</div><span class="route-name">Monumento</span></div><i class="fa-solid fa-chevron-right"></i></div>
+                        <div class="route-item"><div class="route-item-left"><div class="route-count route-buendia">2</div><span class="route-name">Buendia</span></div><i class="fa-solid fa-chevron-right"></i></div>
+                        <div class="route-item"><div class="route-item-left"><div class="route-count route-pasay">1</div><span class="route-name">Pasay</span></div><i class="fa-solid fa-chevron-right"></i></div>
+                        <div class="route-item"><div class="route-item-left"><div class="route-count route-alabang">1</div><span class="route-name">Alabang</span></div><i class="fa-solid fa-chevron-right"></i></div>
+                        <div class="route-item"><div class="route-item-left"><div class="route-count route-fairview">1</div><span class="route-name">SM Fairview</span></div><i class="fa-solid fa-chevron-right"></i></div>
+                    </div>
+                    <div style="margin-top:20px; padding-top:15px; border-top:1px solid #f1f5f9;">
+                        <a href="#" class="view-all">View all routes <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title" style="margin-bottom:15px;"><i class="fa-solid fa-bolt" style="color:var(--yellow-hover);"></i> Quick Actions</div>
+                    <div class="quick-actions">
+                        <div class="action-btn"><i class="fa-solid fa-van-shuttle"></i><span>Register Van</span></div>
+                        <div class="action-btn"><i class="fa-regular fa-id-card"></i><span>Add Driver</span></div>
+                        <div class="action-btn"><i class="fa-solid fa-route"></i><span>Assign Route</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

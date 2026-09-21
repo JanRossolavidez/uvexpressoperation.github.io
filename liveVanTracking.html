@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Biyahero - Live Van Tracking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy-blue: #0f233f; --sidebar-blue: #142c4e; --yellow: #facc15; --yellow-hover: #eab308;
+            --bg-light: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0;
+            --status-arrived-bg: #dcfce7; --status-arrived-text: #166534; --status-ontime-bg: #e0f2fe; --status-ontime-text: #0369a1;
+            --status-delayed-bg: #fee2e2; --status-delayed-text: #991b1b; --status-departed-bg: #f1f5f9; --status-departed-text: #475569;
+            --status-scheduled-bg: #f3e8ff; --status-scheduled-text: #6b21a8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
+        body { background-color: var(--bg-light); display: flex; height: 100vh; overflow: hidden; color: var(--text-main); }
+
+        .sidebar { width: 260px; background-color: var(--sidebar-blue); color: white; display: flex; flex-direction: column; position: relative; transition: all 0.3s; flex-shrink: 0; z-index: 20; }
+        .logo-container { padding: 20px; display: flex; align-items: center; gap: 10px; background-color: var(--navy-blue); }
+        
+        /* LOGO IMAGE */
+        .logo-img {
+            height: 38px;
+            width: auto;
+            border-radius: 6px;
+            object-fit: contain;
+            background-color: white;
+            padding: 2px 4px;
+            flex-shrink: 0;
+        }
+        .logo-icon { font-size: 28px; color: var(--yellow); }
+        .logo-text { min-width: 0; }
+        /* SMALLER TITLE SO IT FITS ON ONE LINE */
+        .logo-text h1 { font-size: 15px; font-weight: 800; line-height: 1.2; white-space: nowrap; }
+        .logo-text p { font-size: 9px; color: var(--yellow); font-weight: 600; white-space: nowrap; }
+        .nav-menu { padding: 20px 10px; flex-grow: 1; }
+        .nav-item { display: flex; align-items: center; gap: 15px; padding: 14px 20px; color: #cbd5e1; text-decoration: none; border-radius: 8px; margin-bottom: 8px; font-weight: 600; transition: all 0.2s; }
+        .nav-item:hover { background-color: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-item.active { background-color: var(--yellow); color: var(--navy-blue); font-weight: 700; }
+        .nav-item i { width: 20px; text-align: center; font-size: 18px; }
+        .sidebar-footer { padding: 20px; position: relative; margin-top: auto; }
+        .status-box { background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; z-index: 2; position: relative; }
+        .status-dot { width: 10px; height: 10px; background-color: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; flex-shrink: 0; }
+        .status-text { font-size: 12px; }
+        .status-text strong { display: block; font-size: 13px; white-space: nowrap; }
+        .status-text span { color: #94a3b8; font-size: 11px; }
+        .sidebar-illustration { position: absolute; bottom: 0; left: 0; width: 100%; height: 150px; background: linear-gradient(to top, var(--yellow) 0%, transparent 100%); opacity: 0.1; border-radius: 0 0 0 20px; z-index: 1; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 20px; pointer-events: none; }
+        .sidebar-illustration i { font-size: 80px; color: white; opacity: 0.2; }
+
+        .logout-btn {
+            display: flex; align-items: center; gap: 15px; padding: 14px 20px;
+            background-color: rgba(239, 68, 68, 0.15); color: #fca5a5; text-decoration: none;
+            border-radius: 8px; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.3);
+            transition: all 0.2s; position: relative; z-index: 2; margin-bottom: 15px;
+        }
+        .logout-btn:hover { background-color: #ef4444; color: white; border-color: #ef4444; }
+        .logout-btn i { width: 20px; text-align: center; font-size: 18px; }
+
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .topbar { background-color: var(--card-bg); height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 10; }
+        .topbar-left { display: flex; align-items: center; gap: 20px; }
+        .menu-toggle { font-size: 20px; color: var(--text-main); cursor: pointer; display: none; }
+        .greeting h2 { font-size: 22px; font-weight: 800; color: var(--navy-blue); }
+        .greeting p { font-size: 14px; color: var(--text-muted); font-weight: 600; }
+        .topbar-right { display: flex; align-items: center; gap: 25px; }
+        .notification-icon { position: relative; font-size: 20px; color: var(--text-main); cursor: pointer; }
+        .notification-icon::after { content: ''; position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; border: 2px solid white; }
+        .user-profile { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .avatar { width: 40px; height: 40px; background-color: var(--yellow); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; color: var(--navy-blue); }
+        .user-info h4 { font-size: 14px; font-weight: 700; }
+        .user-info p { font-size: 12px; color: var(--text-muted); }
+
+        .dashboard-container { padding: 30px; display: grid; grid-template-columns: 2.2fr 1fr; gap: 25px; align-items: start; }
+        .left-column { display: flex; flex-direction: column; gap: 25px; }
+        .panel { background-color: var(--card-bg); border: 1px solid #fde68a; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .panel-title-group { display: flex; align-items: center; gap: 15px; }
+        .panel-title-icon { width: 40px; height: 40px; background-color: var(--yellow); border-radius: 10px; display: flex; justify-content: center; align-items: center; color: var(--navy-blue); font-size: 18px; flex-shrink: 0; }
+        .panel-title { font-size: 18px; font-weight: 800; color: var(--navy-blue); }
+        .panel-subtitle { font-size: 13px; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+        .controls-group { display: flex; align-items: center; gap: 15px; }
+        .live-updates { background-color: #fffbeb; border: 1px solid #fef3c7; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: 700; color: var(--navy-blue); display: flex; align-items: center; gap: 8px; }
+        .live-updates span.dot { width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; }
+        .last-updated { font-size: 12px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 5px; width: 100%; justify-content: flex-end; margin-top: -10px; margin-bottom: 10px; }
+        .filter-dropdown { background-color: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 15px; font-size: 13px; font-weight: 700; color: var(--navy-blue); display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .filter-dropdown i { color: var(--text-muted); font-size: 12px; }
+
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { font-size: 13px; color: var(--navy-blue); font-weight: 800; padding: 12px 10px; background-color: #fef9c3; }
+        th:first-child { border-top-left-radius: 6px; border-bottom-left-radius: 6px; padding-left: 15px; }
+        th:last-child { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+        td { padding: 15px 10px; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--border-color); color: var(--text-muted); white-space: nowrap; }
+        td:first-child { padding-left: 15px; color: var(--text-main); font-weight: 700; }
+        td:nth-child(2) { color: var(--text-main); font-weight: 700; }
+        td:nth-child(3), td:nth-child(4), td:nth-child(5) { color: var(--text-main); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #f8fafc; }
+
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; display: inline-block; text-align: center; min-width: 80px; }
+        .status-arrived { background-color: var(--status-arrived-bg); color: var(--status-arrived-text); }
+        .status-ontime { background-color: var(--status-ontime-bg); color: var(--status-ontime-text); }
+        .status-delayed { background-color: var(--status-delayed-bg); color: var(--status-delayed-text); }
+        .status-departed { background-color: var(--status-departed-bg); color: var(--status-departed-text); }
+        .status-scheduled { background-color: var(--status-scheduled-bg); color: var(--status-scheduled-text); }
+        
+        .btn-view { background-color: #fffbeb; color: var(--navy-blue); border: 1px solid var(--yellow); padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s; }
+        .btn-view:hover { background-color: var(--yellow); }
+
+        .right-column { display: flex; flex-direction: column; gap: 25px; }
+        .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .overview-card { background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 15px; position: relative; }
+        .overview-card:nth-child(2) { background-color: #f0f9ff; border-color: #e0f2fe; }
+        .overview-card:nth-child(3) { background-color: #f0fdf4; border-color: #dcfce7; }
+        .overview-card:nth-child(4) { background-color: #faf5ff; border-color: #f3e8ff; }
+        .oc-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 16px; color: white; margin-bottom: 10px; background-color: var(--yellow); }
+        .overview-card:nth-child(2) .oc-icon { background-color: #3b82f6; }
+        .overview-card:nth-child(3) .oc-icon { background-color: #22c55e; }
+        .overview-card:nth-child(4) .oc-icon { background-color: #a855f7; }
+        .oc-value { font-size: 24px; font-weight: 800; color: var(--navy-blue); line-height: 1; margin-bottom: 5px; }
+        .oc-label { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+        .oc-trend { font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .trend-up { color: #16a34a; }
+        .trend-neutral { color: var(--text-muted); }
+        
+        .live-info-panel { display: flex; background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 20px; align-items: center; gap: 20px; }
+        .live-time-group { flex-grow: 1; border-right: 1px solid var(--border-color); padding-right: 20px; }
+        .live-time-header { font-size: 13px; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+        .live-time-value { font-size: 28px; font-weight: 800; color: var(--navy-blue); line-height: 1; }
+        .live-date { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 5px; }
+        .weather-group { display: flex; align-items: center; gap: 15px; }
+        .weather-icon { font-size: 32px; color: #f59e0b; }
+        .weather-info h3 { font-size: 20px; font-weight: 800; color: var(--navy-blue); line-height: 1; }
+        .weather-info p { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 4px; }
+
+        .timeline { display: flex; flex-direction: column; gap: 15px; position: relative; padding-left: 5px; }
+        .timeline::before { content: ''; position: absolute; left: 10px; top: 5px; bottom: 5px; width: 2px; background-color: #f1f5f9; }
+        .timeline-item { display: flex; gap: 15px; position: relative; z-index: 2; }
+        .timeline-dot { width: 12px; height: 12px; border-radius: 50%; background-color: #cbd5e1; margin-top: 3px; flex-shrink: 0; box-shadow: 0 0 0 4px white; }
+        .timeline-item:nth-child(1) .timeline-dot { background-color: #22c55e; }
+        .timeline-item:nth-child(2) .timeline-dot { background-color: #3b82f6; }
+        .timeline-item:nth-child(3) .timeline-dot { background-color: #22c55e; }
+        .timeline-item:nth-child(4) .timeline-dot { background-color: #3b82f6; }
+        .timeline-item:nth-child(5) .timeline-dot { background-color: #22c55e; }
+        .timeline-content { flex-grow: 1; display: flex; justify-content: space-between; align-items: flex-start; }
+        .timeline-details p { font-size: 12px; color: var(--text-muted); font-weight: 700; margin-bottom: 2px; }
+        .timeline-details h4 { font-size: 13px; font-weight: 700; color: var(--navy-blue); }
+        .badge-sm { padding: 4px 10px; font-size: 10px; border-radius: 12px; font-weight: 800; text-transform: uppercase; }
+        .badge-arrival { background-color: var(--status-arrived-bg); color: var(--status-arrived-text); }
+        .badge-departure { background-color: var(--status-ontime-bg); color: var(--status-ontime-text); }
+
+        .safe-travels-banner { background-color: #fef3c7; border: 1px dashed var(--yellow); border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 15px; margin-top: 10px; }
+        .st-icon { font-size: 32px; color: var(--navy-blue); }
+        .st-text h3 { font-size: 18px; font-family: 'Brush Script MT', cursive, sans-serif; font-weight: normal; color: var(--navy-blue); margin-bottom: 2px; }
+        .st-text p { font-size: 11px; font-weight: 700; color: var(--text-muted); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        @media (max-width: 1200px) { .dashboard-container { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { 
+            .sidebar { width: 80px; } 
+            .logo-text, .nav-item span, .status-text, .sidebar-illustration { display: none; } 
+            .logo-container { justify-content: center; padding: 20px 0; } 
+            .nav-item { justify-content: center; padding: 15px 0; } 
+            .status-box { justify-content: center; padding: 10px; } 
+            .menu-toggle { display: block; } 
+            .logout-btn span { display: none; } 
+            .logout-btn { justify-content: center; padding: 15px 0; } 
+            .logo-img { height: 34px; }
+        }
+        @media (max-width: 600px) { .topbar { padding: 0 15px; } .dashboard-container { padding: 15px; } .user-info { display: none; } .panel-header { flex-direction: column; align-items: flex-start; } .controls-group { width: 100%; justify-content: space-between; } .overview-grid { grid-template-columns: 1fr; } .live-info-panel { flex-direction: column; text-align: center; } .live-time-group { border-right: none; padding-right: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px; width: 100%; } .weather-group { justify-content: center; width: 100%; } }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo-container">
+            <!-- LOGO IMAGE -->
+            <img src="logo.jpg" alt="E-Biyahero Logo" class="logo-img">
+            <div class="logo-text"><h1>E-Biyahero</h1><p>UV Express Terminal</p></div>
+        </div>
+        <nav class="nav-menu">
+            <a href="operatorDashboard.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+            <a href="vanQueue.html" class="nav-item"><i class="fa-solid fa-van-shuttle"></i><span>Van Queue</span></a>
+            <a href="liveVanTracking.html" class="nav-item active"><i class="fa-solid fa-location-dot"></i><span>Live Tracking</span></a>
+            <a href="operatorPassenger.html" class="nav-item"><i class="fa-solid fa-users"></i><span>Passengers</span></a>
+            <a href="operatorPayments.html" class="nav-item"><i class="fa-solid fa-credit-card"></i><span>Payments</span></a>
+            <a href="operatorReports.html" class="nav-item"><i class="fa-solid fa-chart-simple"></i><span>Reports</span></a>
+            <a href="operatorSettings.html" class="nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="status-box"><div class="status-dot"></div><div class="status-text"><strong>Terminal Online</strong><span>Malolos UV Express Terminal</span></div></div>
+            <a href="index.html" class="logout-btn">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span>Log Out</span>
+            </a>
+            <div class="sidebar-illustration"><i class="fa-solid fa-van-shuttle"></i></div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <i class="fa-solid fa-bars menu-toggle"></i>
+                <div class="greeting"><h2>Live Van Tracking</h2><p>Malolos UV Express Terminal</p></div>
+            </div>
+            <div class="topbar-right">
+                <div class="notification-icon"><i class="fa-regular fa-bell"></i></div>
+                <div class="user-profile">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="user-info"><h4>Juan Dela Cruz</h4><p>Operator</p></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-container">
+            <div class="left-column">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <div class="panel-title-icon"><i class="fa-solid fa-van-shuttle"></i></div>
+                            <div>
+                                <div class="panel-title">Arrivals</div>
+                                <div class="panel-subtitle">Incoming vans to the terminal</div>
+                            </div>
+                        </div>
+                        <div class="live-updates"><span class="dot"></span> Live Updates <i class="fa-solid fa-rotate-right" style="font-size: 11px; margin-left: 5px;"></i></div>
+                    </div>
+                    <div class="last-updated"><i class="fa-regular fa-clock"></i> Last updated: 08:42 AM</div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>#</th><th>Plate No.</th><th>Route</th><th>From</th><th>Expected Arrival</th><th>Status</th><th>Passengers</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td>NAX 6821</td><td>Malolos – Cubao</td><td>San Jose del Monte</td><td>08:30 AM</td><td><span class="status-badge status-arrived">Arrived</span></td><td>12/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                                <tr><td>2</td><td>NBI 3247</td><td>Malolos – Monumento</td><td>Bulacan</td><td>08:45 AM</td><td><span class="status-badge status-ontime">On Time</span></td><td>8/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                                <tr><td>3</td><td>DAH 5190</td><td>Malolos – Buendia</td><td>San Rafael</td><td>08:50 AM</td><td><span class="status-badge status-ontime">On Time</span></td><td>10/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                                <tr><td>4</td><td>NFJ 2183</td><td>Malolos – Pasay</td><td>Guiguinto</td><td>09:05 AM</td><td><span class="status-badge status-delayed">Delayed</span></td><td>6/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                                <tr><td>5</td><td>NAX 7364</td><td>Malolos – Alabang</td><td>San Ildefonso</td><td>09:10 AM</td><td><span class="status-badge status-ontime">On Time</span></td><td>7/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                                <tr><td>6</td><td>TVO 4521</td><td>Malolos – SM Fairview</td><td>Bocaue</td><td>09:25 AM</td><td><span class="status-badge status-ontime">On Time</span></td><td>9/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <div class="panel-title-icon"><i class="fa-solid fa-van-shuttle"></i></div>
+                            <div>
+                                <div class="panel-title">Departures</div>
+                                <div class="panel-subtitle">Outgoing vans from the terminal</div>
+                            </div>
+                        </div>
+                        <div class="controls-group">
+                            <div class="filter-dropdown"><i class="fa-regular fa-calendar"></i> Today, Sep 14, 2025 <i class="fa-solid fa-chevron-down"></i></div>
+                            <div class="filter-dropdown"><i class="fa-solid fa-filter"></i> All Routes <i class="fa-solid fa-chevron-down"></i></div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>#</th><th>Plate No.</th><th>Route</th><th>Destination</th><th>Departure Time</th><th>Status</th><th>Passengers</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td>ACX 7642</td><td>Malolos – Pasay</td><td>Pasay</td><td>07:45 AM</td><td><span class="status-badge status-departed">Departed</span></td><td>15/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                                <tr><td>2</td><td>ZVE 8631</td><td>Malolos – Alabang</td><td>Alabang</td><td>08:10 AM</td><td><span class="status-badge status-departed">Departed</span></td><td>14/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                                <tr><td>3</td><td>TVO 4521</td><td>Malolos – SM Fairview</td><td>SM Fairview</td><td>08:40 AM</td><td><span class="status-badge status-departed">Departed</span></td><td>12/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                                <tr><td>4</td><td>DAB 3107</td><td>Malolos – Buendia</td><td>Buendia</td><td>09:05 AM</td><td><span class="status-badge status-ontime">On Time</span></td><td>6/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                                <tr><td>5</td><td>NBI 2986</td><td>Malolos – Cubao</td><td>Cubao</td><td>09:30 AM</td><td><span class="status-badge status-ontime">On Time</span></td><td>11/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                                <tr><td>6</td><td>NAX 7364</td><td>Malolos – Monumento</td><td>Monumento</td><td>10:00 AM</td><td><span class="status-badge status-scheduled">Scheduled</span></td><td>0/15</td><td><button class="btn-view"><i class="fa-regular fa-eye"></i> View</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="panel">
+                    <div class="panel-header" style="margin-bottom: 15px;"><div class="panel-title" style="font-size: 16px;"><i class="fa-solid fa-chart-simple" style="color: var(--yellow);"></i> Terminal Overview</div></div>
+                    <div class="overview-grid">
+                        <div class="overview-card"><div class="oc-icon"><i class="fa-solid fa-van-shuttle"></i></div><div class="oc-value">10</div><div class="oc-label">Total Arrivals</div><div class="oc-trend trend-up"><i class="fa-solid fa-arrow-up"></i> 2 vs. yesterday</div></div>
+                        <div class="overview-card"><div class="oc-icon"><i class="fa-solid fa-van-shuttle"></i></div><div class="oc-value">8</div><div class="oc-label">Total Departures</div><div class="oc-trend trend-up"><i class="fa-solid fa-arrow-up"></i> 1 vs. yesterday</div></div>
+                        <div class="overview-card"><div class="oc-icon"><i class="fa-solid fa-users"></i></div><div class="oc-value">214</div><div class="oc-label">Total Passengers Today</div><div class="oc-trend trend-up"><i class="fa-solid fa-arrow-up"></i> 6% vs. yesterday</div></div>
+                        <div class="overview-card"><div class="oc-icon"><i class="fa-regular fa-clock"></i></div><div class="oc-value">6</div><div class="oc-label">Active Vans</div><div class="oc-trend trend-neutral">/ 10 total</div></div>
+                    </div>
+                </div>
+
+                <div class="live-info-panel">
+                    <div class="live-time-group">
+                        <div class="live-time-header"><i class="fa-regular fa-clock"></i> Live Time</div>
+                        <div class="live-time-value">08:42 AM</div>
+                        <div class="live-date">Sun, Sep 14, 2025</div>
+                    </div>
+                    <div class="weather-group">
+                        <div class="weather-icon"><i class="fa-solid fa-sun"></i></div>
+                        <div class="weather-info"><h3>28°C</h3><p>Malolos, Bulacan</p></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header" style="margin-bottom: 20px;">
+                        <div class="panel-title" style="font-size: 16px;"><i class="fa-solid fa-clipboard-list" style="color: var(--yellow);"></i> Recent Activity</div>
+                        <a href="#" class="view-all" style="font-size:13px;">View All <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                    <div class="timeline">
+                        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-details"><p>08:35 AM</p><h4>NAX 6821 arrived from San Jose del Monte</h4></div><span class="badge-sm badge-arrival">Arrival</span></div></div>
+                        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-details"><p>08:10 AM</p><h4>TVO 4521 departed for SM Fairview</h4></div><span class="badge-sm badge-departure">Departure</span></div></div>
+                        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-details"><p>07:45 AM</p><h4>NBI 3247 arrived from Malolos</h4></div><span class="badge-sm badge-arrival">Arrival</span></div></div>
+                        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-details"><p>07:20 AM</p><h4>ACX 7642 departed for Pasay</h4></div><span class="badge-sm badge-departure">Departure</span></div></div>
+                        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-details"><p>06:50 AM</p><h4>ZVE 8631 arrived from Alabang</h4></div><span class="badge-sm badge-arrival">Arrival</span></div></div>
+                    </div>
+                </div>
+
+                <div class="safe-travels-banner">
+                    <div class="st-icon"><i class="fa-solid fa-van-shuttle"></i></div>
+                    <div class="st-text"><h3>Safe Travels!</h3><p>Biyaheng Maayos, Para Sa Lahat!</p></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Biyahero Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Shared header styles -->
+    <link rel="stylesheet" href="header.css">
+
+    <style>
+        /* ---------- SCROLLBAR STABILITY FIX (must match registration.html) ---------- */
+        html {
+            scrollbar-gutter: stable;
+            overflow-y: scroll;
+            overflow-x: hidden;
+        }
+
+        :root {
+            --primary-yellow: #ffcc00;
+            --dark-blue: #0f1b33;
+            --nav-blue: #101f3b;
+            --text-dark: #333333;
+            --text-light: #777777;
+            --border-color: #e0e0e0;
+            --bg-light: #f8f9fa;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; width: 100%; }
+        a { text-decoration: none; color: inherit; }
+
+        /* ... rest of your existing styles ... */
+
+        .hero {
+            position: relative;
+            background: linear-gradient(rgba(15, 27, 51, 0.8), rgba(15, 27, 51, 0.8)), url('background.jpg') center/cover no-repeat;
+            min-height: 450px; padding: 80px 5% 150px 5%;
+        }
+        .hero-content { max-width: 500px; color: white; margin-top: 30px; }
+        .hero-subtitle { color: var(--primary-yellow); font-weight: 700; font-size: 14px; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase; }
+        .hero-title { font-size: 42px; font-weight: 800; line-height: 1.2; margin-bottom: 20px; }
+        .hero-title span { color: var(--primary-yellow); }
+        .hero-desc { font-size: 15px; line-height: 1.6; color: #d1d5db; }
+
+        .main-content { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 0 20px; position: relative; background-color: white; }
+        .login-card { background-color: white; width: 100%; max-width: 480px; padding: 40px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); margin-top: -120px; position: relative; z-index: 20; text-align: center; }
+        .card-logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 25px; }
+        .card-logo .logo-img { height: 48px; width: auto; border-radius: 8px; object-fit: contain; background-color: transparent; padding: 0; }
+        .card-logo .logo-text { text-align: left; }
+        .card-logo .logo-text .title { color: var(--nav-blue); font-size: 20px; font-weight: 800; }
+        .card-logo .logo-text .subtitle { color: var(--primary-yellow); font-size: 10px; font-weight: 600; }
+        .card-title { font-size: 28px; font-weight: 700; color: var(--nav-blue); margin-bottom: 8px; }
+        .card-subtitle { font-size: 14px; color: var(--text-light); margin-bottom: 30px; }
+
+        .form-group { margin-bottom: 20px; position: relative; text-align: left; }
+        .input-wrapper { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 6px; padding: 0 15px; background-color: var(--bg-light); transition: border-color 0.3s; }
+        .input-wrapper:focus-within { border-color: var(--primary-yellow); }
+        .input-wrapper i { color: #999; font-size: 16px; margin-right: 10px; }
+        .input-wrapper input { width: 100%; padding: 15px 0; border: none; background: transparent; font-size: 14px; color: var(--text-dark); outline: none; }
+        .input-wrapper input::placeholder { color: #999; }
+        .toggle-password { cursor: pointer; margin-right: 0 !important; margin-left: 10px; }
+
+        .form-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 14px; }
+        .remember-me { display: flex; align-items: center; gap: 8px; color: var(--text-dark); cursor: pointer; }
+        .remember-me input[type="checkbox"] { accent-color: var(--primary-yellow); width: 16px; height: 16px; cursor: pointer; }
+        .forgot-password { color: var(--nav-blue); font-weight: 500; transition: color 0.3s; }
+        .forgot-password:hover { color: var(--primary-yellow); }
+        .btn-submit { width: 100%; padding: 15px; background-color: var(--primary-yellow); color: var(--nav-blue); border: none; border-radius: 6px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: background-color 0.3s; }
+        .btn-submit:hover { background-color: #e6b800; }
+
+        @media (max-width: 600px) {
+            .hero { padding: 60px 20px 120px 20px; text-align: center; }
+            .hero-title { font-size: 32px; }
+            .login-card { padding: 30px 20px; margin-top: -100px; }
+            .card-logo .logo-img { height: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Shared header placeholder -->
+    <div id="site-header"></div>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-subtitle">Welcome Back</div>
+            <h1 class="hero-title">Log In to <br><span>E-Biyahero</span></h1>
+            <p class="hero-desc">Access your account to book rides, manage your trips, and stay updated with our latest routes and schedules.</p>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <div class="login-card">
+            <div class="card-logo">
+                <img src="logo.jpg" alt="E-Biyahero Logo" class="logo-img">
+                <div class="logo-text">
+                    <span class="title">E-Biyahero</span>
+                    <span class="subtitle">UV Express Terminal</span>
+                </div>
+            </div>
+
+            <h2 class="card-title">Log In</h2>
+            <p class="card-subtitle">Welcome back! Please enter your details to continue.</p>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="email" placeholder="Email Address" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="password" placeholder="Password" required>
+                        <i class="fa-solid fa-eye toggle-password" onclick="togglePassword()"></i>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <label class="remember-me">
+                        <input type="checkbox">
+                        Remember me
+                    </label>
+                    <a href="forgot-password.html" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    Log In <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // ---------- LOAD SHARED HEADER ----------
+        fetch('header.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('site-header').innerHTML = html;
+                const loginBtn = document.querySelector('#site-header [data-nav="login"]');
+                if (loginBtn) loginBtn.classList.add('active');
+            });
+
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.toggle-password');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            window.location.href = 'operatorDashboard.html';
+        });
+    </script>
+
+</body>
+</html>
